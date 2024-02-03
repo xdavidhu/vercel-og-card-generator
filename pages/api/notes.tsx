@@ -14,9 +14,18 @@ export default async function handler(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const fontData = await font
 
-    const hasTitle = searchParams.has('title') && searchParams.get('title').trim().length > 0
-    const title = searchParams.get('title')?.slice(0, 200)
-    
+    let title: string
+    const raw_title = searchParams.get('title')
+    if (raw_title && raw_title.trim() !== 'notes.xdavidhu.me') {
+      title = raw_title.trim()
+
+      const max_length = 70
+      if (title.length > max_length) {
+        title = title.substring(0, max_length)
+        title = title.substring(0, Math.min(title.length, title.lastIndexOf(" "))) + '\u2026'
+      }
+    }
+
     const imageResponseOptions: ImageResponseOptions = {
       width: 1200,
       height: 630,
@@ -30,7 +39,7 @@ export default async function handler(req: NextRequest) {
       ],
     }
 
-    return (hasTitle ? new ImageResponse(
+    return (title ? new ImageResponse(
       <div style={{
         height: '100%',
         width: '100%',
@@ -43,7 +52,14 @@ export default async function handler(req: NextRequest) {
         padding: 50,
       }}>
         <div style={{ fontSize: 55 }}>notes.xdavidhu.me</div>
-        <div style={{ fontSize: 95, marginTop: 25, textAlign: 'left', lineHeight: '83%' }}>{title}</div>
+        <div style={{
+          fontSize: 95,
+          marginTop: 25,
+          textAlign: 'left',
+          lineHeight: '83%',
+        }}>
+          {title}
+        </div>
       </div>, imageResponseOptions
     ) : new ImageResponse(
       <div style={{
